@@ -1,30 +1,30 @@
-import { useWallet} from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 
+export function Walletinfo() {
+  const { publicKey } = useWallet();
+  const { connection } = useConnection();
+  const [balance, setBalance] = useState<number | null>(null);
 
- export function walletinfo(){
-    const {publicKey} = useWallet();
-    const {connection}= useConnection();
-    const[Balance,setBalance] = useState<number|null>(null)
+  const fetchBalance = async () => {
+    if (!publicKey) return;
+    const lamports = await connection.getBalance(publicKey);
+    setBalance(lamports / 1_000_000_000);
+  };
 
-    const fetchBalance = async () =>{
-        if(!publicKey) return;
+  useEffect(() => {
+    fetchBalance();
+  }, [publicKey, connection]);
 
-        const lamports = await connection.getBalance(publicKey);
-        setBalance(lamports/1_000_000_000);
-    };
+  if (!publicKey) return null;
 
-    useEffect(()=>{
-        fetchBalance()
-    },[publicKey,connection])
-    
-    return(
-        <div>
-           <p>Wallet: {publicKey.toBase58()}</p>
-           <p>Balance: {Balance === null ? "Loading....":`${Balance}Sol`}</p>
-           <button onClick={fetchBalance}>Refresh</button>
-        </div>
-    )
-    
- }
+  return (
+    <div className="wallet-info">
+      <p><strong>Wallet:</strong> {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}</p>
+      <p><strong>Balance:</strong> {balance === null ? "Loading..." : `${balance} SOL`}</p>
+      <button onClick={fetchBalance}>Refresh</button>
+    </div>
+  );
+}
+export default Walletinfo;
